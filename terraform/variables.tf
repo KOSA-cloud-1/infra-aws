@@ -8,6 +8,20 @@ variable "aws_region" {
   default     = "ap-northeast-2"
 }
 
+variable "aws_access_key" {
+  description = "AWS Access Key ID. profile을 쓰지 않을 때 terraform.tfvars에 설정합니다."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "aws_secret_key" {
+  description = "AWS Secret Access Key. profile을 쓰지 않을 때 terraform.tfvars에 설정합니다."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
 variable "project_name" {
   description = "리소스 이름과 태그에 사용할 프로젝트명"
   type        = string
