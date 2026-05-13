@@ -1,0 +1,18 @@
+#cloud-config
+package_update: true
+package_upgrade: false
+
+packages:
+  - haproxy
+
+write_files:
+  - path: /etc/haproxy/haproxy.cfg
+    owner: root:root
+    permissions: '0644'
+    content: |
+      ${indent(6, haproxy_config)}
+
+runcmd:
+  - systemctl enable haproxy
+  - haproxy -c -f /etc/haproxy/haproxy.cfg
+  - systemctl restart haproxy

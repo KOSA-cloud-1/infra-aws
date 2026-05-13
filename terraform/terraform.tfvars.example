@@ -1,0 +1,79 @@
+# =========================================================
+# AWS 기본 설정
+# =========================================================
+
+aws_region   = "ap-northeast-2"
+project_name = "cloud-team1"
+environment  = "dev"
+
+tags = {
+  Owner = "cloud-team1"
+}
+
+# =========================================================
+# 기존 VPC / Subnet 조회 설정
+# =========================================================
+
+vpc_name = "cloud-team1-vpc"
+
+public_subnets = {
+  public-a = {
+    name = "cloud-team1-subnet-public1-ap-northeast-2a"
+  }
+  public-b = {
+    name = "cloud-team1-subnet-public2-ap-northeast-2b"
+  }
+}
+
+private_subnets = {
+  private-a = {
+    name = "cloud-team1-subnet-private1-ap-northeast-2a"
+  }
+  private-b = {
+    name = "cloud-team1-subnet-private2-ap-northeast-2b"
+  }
+}
+
+# =========================================================
+# HAProxy EC2 구성
+# =========================================================
+
+# null이면 Ubuntu 24.04 LTS 최신 AMI를 자동 조회합니다.
+ami_id = null
+
+# SSH 접속이 필요하면 공개 키와 허용 CIDR을 설정합니다.
+ssh_public_key    = null
+ssh_allowed_cidrs = []
+
+haproxy_instances = {
+  haproxy-a = {
+    subnet_key       = "public-a"
+    instance_type    = "t3.micro"
+    root_volume_size = 20
+  }
+  haproxy-b = {
+    subnet_key       = "public-b"
+    instance_type    = "t3.micro"
+    root_volume_size = 20
+  }
+}
+
+# AWS HAProxy가 VPN을 통해 전달할 On-Prem HAProxy 또는 Ingress endpoint입니다.
+# docs 기준 Ingress Endpoint는 172.17.131.200이고, On-Prem HAProxy Endpoint는 TBD입니다.
+haproxy_backends = {
+  onprem-haproxy-1 = {
+    address    = "YOUR_ONPREM_HAPROXY_IP"
+    http_port  = 80
+    https_port = 443
+    check      = true
+  }
+}
+
+haproxy_balance_algorithm = "roundrobin"
+haproxy_maxconn           = 4096
+
+# =========================================================
+# NLB 접근 제어
+# =========================================================
+
+client_allowed_cidrs = ["0.0.0.0/0"]
