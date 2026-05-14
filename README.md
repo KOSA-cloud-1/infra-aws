@@ -23,6 +23,7 @@ infra-aws/
 - NLB: 80/443 TCP Listener
 - EC2 HAProxy: Public Subnet에 2대 구성
 - HAProxy backend: `haproxy_backends` 변수로 On-Prem HAProxy 또는 Ingress endpoint 지정
+- VPN Server: ER605 IPsec initiator 연결을 받는 StrongSwan EC2와 Elastic IP 구성
 
 ### 실행 방법
 
@@ -35,3 +36,4 @@ terraform apply
 ```
 
 `terraform.tfvars`에서 `haproxy_backends`의 `address`를 실제 On-Prem HAProxy IP로 변경해야 한다.
+ER605 VPN을 적용하려면 `vpn_preshared_key`를 실제 Pre-shared Key로 변경해야 한다.

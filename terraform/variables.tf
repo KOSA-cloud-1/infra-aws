@@ -22,6 +22,89 @@ variable "aws_secret_key" {
   sensitive   = true
 }
 
+# =========================================================
+# VPN Server 구성
+# =========================================================
+
+variable "enable_vpn_server" {
+  description = "ER605 연동용 StrongSwan VPN EC2 생성 여부"
+  type        = bool
+  default     = false
+}
+
+variable "vpn_instance_type" {
+  description = "VPN Server EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "vpn_subnet_key" {
+  description = "VPN Server EC2를 배치할 public_subnets key"
+  type        = string
+  default     = "public-a"
+}
+
+variable "vpn_root_volume_size" {
+  description = "VPN Server root volume size"
+  type        = number
+  default     = 20
+}
+
+variable "vpn_preshared_key" {
+  description = "ER605 IPsec Pre-shared Key"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "vpn_peer_allowed_cidrs" {
+  description = "ER605 쪽 IKE/NAT-T 접속을 허용할 CIDR. ER605가 NAT 뒤에 있으면 0.0.0.0/0로 둡니다."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "vpn_aws_cidrs" {
+  description = "IPsec leftsubnet으로 사용할 AWS CIDR 목록. 비우면 VPC CIDR을 사용합니다."
+  type        = list(string)
+  default     = []
+}
+
+variable "vpn_onprem_cidrs" {
+  description = "IPsec rightsubnet 및 AWS route destination으로 사용할 On-Prem CIDR 목록"
+  type        = list(string)
+  default     = ["192.168.0.0/24"]
+}
+
+variable "vpn_right_id" {
+  description = "ER605 IPsec peer ID"
+  type        = string
+  default     = "@er605"
+}
+
+variable "vpn_ike_proposal" {
+  description = "StrongSwan IKE proposal"
+  type        = string
+  default     = "aes256-sha1-modp1024!"
+}
+
+variable "vpn_esp_proposal" {
+  description = "StrongSwan ESP proposal"
+  type        = string
+  default     = "aes128-sha1!"
+}
+
+variable "vpn_route_table_names" {
+  description = "On-Prem CIDR route를 추가할 기존 Route Table Name 목록"
+
+  type = map(string)
+
+  default = {
+    public    = "cloud-team1-rtb-public"
+    private-a = "cloud-team1-rtb-private1-ap-northeast-2a"
+    private-b = "cloud-team1-rtb-private2-ap-northeast-2b"
+  }
+}
+
 variable "project_name" {
   description = "리소스 이름과 태그에 사용할 프로젝트명"
   type        = string

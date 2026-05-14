@@ -79,3 +79,31 @@ haproxy_maxconn           = 4096
 # =========================================================
 
 client_allowed_cidrs = ["0.0.0.0/0"]
+
+# =========================================================
+# ER605 IPsec VPN Server 구성
+# =========================================================
+
+enable_vpn_server    = true
+vpn_instance_type    = "t3.micro"
+vpn_subnet_key       = "public-a"
+vpn_root_volume_size = 20
+
+# ER605 IPsec Policy의 Pre-shared Key와 동일하게 설정합니다.
+vpn_preshared_key = "CHANGE_ME_STRONG_PSK"
+
+# ER605가 공인 IP 없이 NAT 뒤에서 접속하는 구조라면 0.0.0.0/0로 둡니다.
+vpn_peer_allowed_cidrs = ["0.0.0.0/0"]
+
+vpn_aws_cidrs    = ["10.1.0.0/16"]
+vpn_onprem_cidrs = ["192.168.0.0/24"]
+vpn_right_id     = "@er605"
+
+vpn_ike_proposal = "aes256-sha1-modp1024!"
+vpn_esp_proposal = "aes128-sha1!"
+
+vpn_route_table_names = {
+  public    = "cloud-team1-rtb-public"
+  private-a = "cloud-team1-rtb-private1-ap-northeast-2a"
+  private-b = "cloud-team1-rtb-private2-ap-northeast-2b"
+}
