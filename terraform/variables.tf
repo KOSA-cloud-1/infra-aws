@@ -72,7 +72,7 @@ variable "vpn_aws_cidrs" {
 variable "vpn_onprem_cidrs" {
   description = "IPsec rightsubnet 및 AWS route destination으로 사용할 On-Prem CIDR 목록"
   type        = list(string)
-  default     = ["192.168.0.0/24"]
+  default     = ["172.17.32.0/24"]
 }
 
 variable "vpn_right_id" {

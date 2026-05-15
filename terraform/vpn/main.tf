@@ -1,7 +1,15 @@
 locals {
+  name_prefix = substr("${var.project_name}-${var.environment}", 0, 20)
+
+  common_tags = merge(var.tags, {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  })
+
   vpn_aws_cidrs = length(var.vpn_aws_cidrs) > 0 ? var.vpn_aws_cidrs : [data.aws_vpc.this.cidr_block]
 
-  vpn_route_entries = var.enable_vpn_server ? merge([
+  vpn_route_entry_maps = [
     for route_table_key, route_table_name in var.vpn_route_table_names : {
       for cidr in var.vpn_onprem_cidrs :
       "${route_table_key}-${replace(replace(cidr, ".", "-"), "/", "-")}" => {
@@ -9,7 +17,52 @@ locals {
         cidr            = cidr
       }
     }
-  ]...) : {}
+  ]
+
+  vpn_route_entries = var.enable_vpn_server ? merge({}, local.vpn_route_entry_maps...) : {}
+}
+
+data "aws_ami" "ubuntu" {
+  count = var.ami_id == null ? 1 : 0
+
+  most_recent = true
+  owners      = ["099720109477"]
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
+data "aws_vpc" "this" {
+  filter {
+    name   = "tag:Name"
+    values = [var.vpc_name]
+  }
+}
+
+data "aws_subnet" "public" {
+  for_each = var.public_subnets
+
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.this.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = [each.value.name]
+  }
 }
 
 data "aws_route_table" "vpn" {
@@ -115,7 +168,7 @@ resource "aws_instance" "vpn" {
   subnet_id                   = data.aws_subnet.public[var.vpn_subnet_key].id
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.vpn[0].id]
-  key_name                    = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
+  key_name                    = var.ssh_key_name
   source_dest_check           = false
   user_data_replace_on_change = true
 

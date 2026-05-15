@@ -6,41 +6,6 @@ locals {
     Environment = var.environment
     ManagedBy   = "terraform"
   })
-
-  listener_ports = {
-    http  = 80
-    https = 443
-  }
-
-  target_attachments = {
-    for pair in setproduct(keys(local.listener_ports), keys(var.haproxy_instances)) :
-    "${pair[0]}-${pair[1]}" => {
-      listener = pair[0]
-      instance = pair[1]
-    }
-  }
-}
-
-data "aws_ami" "ubuntu" {
-  count = var.ami_id == null ? 1 : 0
-
-  most_recent = true
-  owners      = ["099720109477"]
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
 }
 
 data "aws_vpc" "this" {
@@ -79,91 +44,7 @@ data "aws_subnet" "private" {
 }
 
 # =========================================================
-# Security Group
-# =========================================================
-
-resource "aws_security_group" "nlb" {
-  name        = "${local.name_prefix}-nlb-sg"
-  description = "Allow public service traffic to AWS NLB"
-  vpc_id      = data.aws_vpc.this.id
-
-  ingress {
-    description = "HTTP from clients"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = var.client_allowed_cidrs
-  }
-
-  ingress {
-    description = "HTTPS from clients"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = var.client_allowed_cidrs
-  }
-
-  egress {
-    description = "Outbound to HAProxy targets"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-nlb-sg"
-  })
-}
-
-resource "aws_security_group" "haproxy" {
-  name        = "${local.name_prefix}-haproxy-sg"
-  description = "Allow NLB traffic to HAProxy EC2"
-  vpc_id      = data.aws_vpc.this.id
-
-  ingress {
-    description     = "HTTP from NLB"
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    security_groups = [aws_security_group.nlb.id]
-  }
-
-  ingress {
-    description     = "HTTPS from NLB"
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.nlb.id]
-  }
-
-  dynamic "ingress" {
-    for_each = length(var.ssh_allowed_cidrs) > 0 ? [1] : []
-
-    content {
-      description = "SSH from allowed CIDRs"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = var.ssh_allowed_cidrs
-    }
-  }
-
-  egress {
-    description = "Outbound to on-prem or internet"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-haproxy-sg"
-  })
-}
-
-# =========================================================
-# HAProxy EC2
+# Shared SSH Key Pair
 # =========================================================
 
 resource "aws_key_pair" "haproxy" {
@@ -177,109 +58,50 @@ resource "aws_key_pair" "haproxy" {
   })
 }
 
-resource "aws_instance" "haproxy" {
-  for_each = var.haproxy_instances
+# =========================================================
+# Workload Modules
+# =========================================================
 
-  ami                         = var.ami_id != null ? var.ami_id : data.aws_ami.ubuntu[0].id
-  instance_type               = each.value.instance_type
-  subnet_id                   = data.aws_subnet.public[each.value.subnet_key].id
-  private_ip                  = each.value.private_ip
+module "haproxy" {
+  source = "./haproxy"
+
+  ami_id                      = var.ami_id
   associate_public_ip_address = var.associate_public_ip_address
-  vpc_security_group_ids      = [aws_security_group.haproxy.id]
-  key_name                    = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
-  user_data_replace_on_change = true
-
-  user_data = templatefile("${path.module}/templates/cloud-init.yml.tftpl", {
-    haproxy_config = templatefile("${path.module}/templates/haproxy.cfg.tftpl", {
-      backends          = var.haproxy_backends
-      balance_algorithm = var.haproxy_balance_algorithm
-      listener_ports    = local.listener_ports
-      maxconn           = var.haproxy_maxconn
-    })
-  })
-
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
-  }
-
-  root_block_device {
-    volume_size           = each.value.root_volume_size
-    volume_type           = "gp3"
-    encrypted             = true
-    delete_on_termination = true
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-${each.key}"
-    Role = "haproxy"
-  })
-
-  lifecycle {
-    precondition {
-      condition     = contains(keys(var.public_subnets), each.value.subnet_key)
-      error_message = "haproxy_instances의 subnet_key는 public_subnets에 정의된 key여야 합니다."
-    }
-  }
+  client_allowed_cidrs        = var.client_allowed_cidrs
+  environment                 = var.environment
+  haproxy_backends            = var.haproxy_backends
+  haproxy_balance_algorithm   = var.haproxy_balance_algorithm
+  haproxy_instances           = var.haproxy_instances
+  haproxy_maxconn             = var.haproxy_maxconn
+  project_name                = var.project_name
+  public_subnets              = var.public_subnets
+  ssh_allowed_cidrs           = var.ssh_allowed_cidrs
+  ssh_key_name                = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
+  tags                        = var.tags
+  vpc_name                    = var.vpc_name
 }
 
-# =========================================================
-# Network Load Balancer
-# =========================================================
+module "vpn" {
+  source = "./vpn"
 
-resource "aws_lb" "haproxy" {
-  name                             = "${local.name_prefix}-haproxy-nlb"
-  load_balancer_type               = "network"
-  internal                         = false
-  subnets                          = [for subnet in data.aws_subnet.public : subnet.id]
-  security_groups                  = [aws_security_group.nlb.id]
-  enable_cross_zone_load_balancing = true
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-haproxy-nlb"
-  })
-}
-
-resource "aws_lb_target_group" "haproxy" {
-  for_each = local.listener_ports
-
-  name        = "${local.name_prefix}-${each.key}-tg"
-  port        = each.value
-  protocol    = "TCP"
-  target_type = "instance"
-  vpc_id      = data.aws_vpc.this.id
-
-  health_check {
-    enabled             = true
-    protocol            = "TCP"
-    port                = "traffic-port"
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
-    interval            = 30
-  }
-
-  tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-${each.key}-tg"
-  })
-}
-
-resource "aws_lb_listener" "haproxy" {
-  for_each = local.listener_ports
-
-  load_balancer_arn = aws_lb.haproxy.arn
-  port              = each.value
-  protocol          = "TCP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.haproxy[each.key].arn
-  }
-}
-
-resource "aws_lb_target_group_attachment" "haproxy" {
-  for_each = local.target_attachments
-
-  target_group_arn = aws_lb_target_group.haproxy[each.value.listener].arn
-  target_id        = aws_instance.haproxy[each.value.instance].id
-  port             = local.listener_ports[each.value.listener]
+  ami_id                 = var.ami_id
+  enable_vpn_server      = var.enable_vpn_server
+  environment            = var.environment
+  project_name           = var.project_name
+  public_subnets         = var.public_subnets
+  ssh_allowed_cidrs      = var.ssh_allowed_cidrs
+  ssh_key_name           = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
+  tags                   = var.tags
+  vpc_name               = var.vpc_name
+  vpn_aws_cidrs          = var.vpn_aws_cidrs
+  vpn_esp_proposal       = var.vpn_esp_proposal
+  vpn_ike_proposal       = var.vpn_ike_proposal
+  vpn_instance_type      = var.vpn_instance_type
+  vpn_onprem_cidrs       = var.vpn_onprem_cidrs
+  vpn_peer_allowed_cidrs = var.vpn_peer_allowed_cidrs
+  vpn_preshared_key      = var.vpn_preshared_key
+  vpn_right_id           = var.vpn_right_id
+  vpn_root_volume_size   = var.vpn_root_volume_size
+  vpn_route_table_names  = var.vpn_route_table_names
+  vpn_subnet_key         = var.vpn_subnet_key
 }
