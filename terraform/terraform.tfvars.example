@@ -60,11 +60,11 @@ haproxy_instances = {
   }
 }
 
-# AWS HAProxy가 VPN을 통해 전달할 On-Prem HAProxy 또는 Ingress endpoint입니다.
-# docs 기준 Ingress Endpoint는 172.17.131.200이고, On-Prem HAProxy Endpoint는 TBD입니다.
+# AWS HAProxy가 VPN을 통해 전달할 VLAN20 On-Prem HAProxy VIP입니다.
+# AWS/VPN에서 VLAN40 Ingress VIP로 직접 보내지 않도록 DMZ VIP만 backend로 둡니다.
 haproxy_backends = {
-  onprem-haproxy-1 = {
-    address    = "YOUR_ONPREM_HAPROXY_IP"
+  onprem-haproxy-vip = {
+    address    = "172.17.32.200"
     http_port  = 80
     https_port = 443
     check      = true
@@ -96,7 +96,7 @@ vpn_preshared_key = "CHANGE_ME_STRONG_PSK"
 vpn_peer_allowed_cidrs = ["0.0.0.0/0"]
 
 vpn_aws_cidrs    = ["10.1.0.0/16"]
-vpn_onprem_cidrs = ["192.168.0.0/24"]
+vpn_onprem_cidrs = ["172.17.32.0/24"]
 vpn_right_id     = "@er605"
 
 vpn_ike_proposal = "aes256-sha1-modp1024!"
