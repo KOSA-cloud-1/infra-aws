@@ -5,6 +5,5 @@ terraform.tfvars
 *.tfvars.json
 crash.log
 crash.*.log
-.terraform.lock.hcl
- 
- .DS_Store
+
+.DS_Store
