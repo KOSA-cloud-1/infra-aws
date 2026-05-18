@@ -33,6 +33,7 @@ infra-aws/
 - HAProxy backend: `haproxy_backends` 변수로 VLAN20 On-Prem HAProxy VIP 지정
 - VPN Server: ER605 IPsec initiator 연결을 받는 StrongSwan EC2와 Elastic IP 구성
 - VPN on-prem CIDR: 기본값은 VLAN20 DMZ `172.17.32.0/24`로 두어 AWS/VPN에서 VLAN40으로 직접 라우팅하지 않는다.
+- 기본 backend 예시는 `infra-proxmox/terraform/haproxy`의 `haproxy_vip` 값인 `172.17.32.20`에 맞춰 둔다.
 
 ### 실행 방법
 
@@ -42,6 +43,13 @@ cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform plan
 terraform apply
+```
+
+또는 Proxmox Terraform과 같은 단계별 배포 스크립트를 사용할 수 있다.
+
+```bash
+cd terraform
+./terraform-execute.sh
 ```
 
 `terraform.tfvars`에서 `haproxy_backends`의 `address`를 실제 VLAN20 On-Prem HAProxy VIP로 변경해야 한다.

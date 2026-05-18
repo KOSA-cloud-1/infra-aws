@@ -11,15 +11,16 @@ global
 
 defaults
   log global
-  mode tcp
+  mode tcp          # L4(TCP) 모드: TLS 패킷을 그대로 통과시킴 (SSL 종료 없음)
   option tcplog
   timeout connect 5s
   timeout client 50s
   timeout server 50s
+  timeout tunnel 1h
 
 %{ for listener_name, listener_port in listener_ports ~}
 frontend ${listener_name}_in
-  bind *:${listener_port}
+  bind *:${listener_port}   # AWS NLB target traffic
   mode tcp
   default_backend ${listener_name}_backends
 
@@ -27,7 +28,7 @@ backend ${listener_name}_backends
   mode tcp
   balance ${balance_algorithm}
 %{ for backend_name, backend in backends ~}
-  server ${backend_name} ${backend.address}:${listener_name == "http" ? backend.http_port : backend.https_port} ${backend.check ? "check" : ""}
+  server ${backend_name} ${backend.address}:${listener_name == "http" ? backend.http_port : backend.https_port}%{ if backend.check } check%{ endif }
 %{ endfor ~}
 
 %{ endfor ~}

@@ -44,6 +44,11 @@ output "haproxy_public_ips" {
   value       = module.haproxy.haproxy_public_ips
 }
 
+output "haproxy_backends" {
+  description = "AWS HAProxy가 전달하는 backend 목록"
+  value       = module.haproxy.haproxy_backends
+}
+
 output "security_group_ids" {
   description = "Security Group ID 목록"
   value = {
@@ -66,4 +71,14 @@ output "vpn_server_public_ip" {
 output "vpn_server_private_ip" {
   description = "VPN Server EC2 Private IP"
   value       = module.vpn.vpn_server_private_ip
+}
+
+output "aws_entry_summary" {
+  description = "AWS 외부 진입 구간 요약"
+  value = {
+    total_haproxy_instances = length(var.haproxy_instances)
+    total_haproxy_backends  = length(var.haproxy_backends)
+    vpn_enabled             = var.enable_vpn_server
+    nlb_dns_name            = module.haproxy.nlb_dns_name
+  }
 }

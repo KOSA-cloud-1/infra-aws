@@ -45,6 +45,19 @@ output "haproxy_public_ips" {
   }
 }
 
+output "haproxy_backends" {
+  description = "AWS HAProxy가 전달하는 backend 목록"
+  value = {
+    for k, backend in var.haproxy_backends :
+    k => {
+      address    = backend.address
+      http_port  = backend.http_port
+      https_port = backend.https_port
+      check      = backend.check
+    }
+  }
+}
+
 output "nlb_security_group_id" {
   description = "NLB Security Group ID"
   value       = aws_security_group.nlb.id

@@ -163,6 +163,7 @@ resource "aws_instance" "haproxy" {
       listener_ports    = local.listener_ports
       maxconn           = var.haproxy_maxconn
     })
+    hostname = each.key
   })
 
   metadata_options {
