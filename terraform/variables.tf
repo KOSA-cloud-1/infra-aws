@@ -50,6 +50,38 @@ variable "vpn_root_volume_size" {
   default     = 20
 }
 
+variable "vpn_instances" {
+  description = "생성할 StrongSwan VPN EC2 목록. 비우면 기존 단일 vpn_* 변수로 1대를 생성합니다."
+
+  type = map(object({
+    subnet_key       = string
+    instance_type    = optional(string)
+    private_ip       = optional(string)
+    root_volume_size = optional(number)
+    priority         = optional(number, 100)
+  }))
+
+  default = {}
+}
+
+variable "vpn_active_instance_key" {
+  description = "초기 서비스 EIP와 On-Prem route를 연결할 Active VPN instance key. null이면 정렬상 첫 key를 사용합니다."
+  type        = string
+  default     = null
+}
+
+variable "enable_vpn_failover" {
+  description = "여러 VPN EC2 중 장애가 아닌 인스턴스로 EIP와 route를 넘기는 Lambda failover 사용 여부"
+  type        = bool
+  default     = true
+}
+
+variable "vpn_failover_schedule_expression" {
+  description = "VPN failover Lambda 실행 주기"
+  type        = string
+  default     = "rate(1 minute)"
+}
+
 variable "vpn_preshared_key" {
   description = "ER605 IPsec Pre-shared Key"
   type        = string

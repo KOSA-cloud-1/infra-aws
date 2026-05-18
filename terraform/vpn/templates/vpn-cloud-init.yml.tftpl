@@ -2,6 +2,9 @@
 package_update: true
 package_upgrade: false
 
+hostname: ${hostname}
+preserve_hostname: false
+
 packages:
   - strongswan
 
@@ -13,6 +16,14 @@ write_files:
       net.ipv4.ip_forward=1
       net.ipv4.conf.all.accept_redirects=0
       net.ipv4.conf.all.send_redirects=0
+
+  - path: /etc/systemd/system/strongswan-starter.service.d/override.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [Service]
+      Restart=always
+      RestartSec=5
 
   - path: /etc/ipsec.secrets
     owner: root:root
@@ -28,5 +39,6 @@ write_files:
 
 runcmd:
   - sysctl --system
+  - systemctl daemon-reload
   - systemctl enable strongswan-starter
   - ipsec restart

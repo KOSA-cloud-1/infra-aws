@@ -59,18 +59,38 @@ output "security_group_ids" {
 }
 
 output "vpn_server_instance_id" {
-  description = "VPN Server EC2 Instance ID"
+  description = "Active VPN Server EC2 Instance ID"
   value       = module.vpn.vpn_server_instance_id
 }
 
+output "vpn_server_instance_ids" {
+  description = "VPN Server EC2 Instance ID 목록"
+  value       = module.vpn.vpn_server_instance_ids
+}
+
+output "vpn_active_instance_key" {
+  description = "현재 Terraform 기준 Active VPN instance key"
+  value       = module.vpn.vpn_active_instance_key
+}
+
 output "vpn_server_public_ip" {
-  description = "ER605 Remote Gateway로 사용할 VPN Server Elastic IP"
+  description = "ER605 Remote Gateway로 사용할 VPN Service Elastic IP"
   value       = module.vpn.vpn_server_public_ip
 }
 
 output "vpn_server_private_ip" {
-  description = "VPN Server EC2 Private IP"
+  description = "Active VPN Server EC2 Private IP"
   value       = module.vpn.vpn_server_private_ip
+}
+
+output "vpn_server_private_ips" {
+  description = "VPN Server EC2 Private IP 목록"
+  value       = module.vpn.vpn_server_private_ips
+}
+
+output "vpn_failover_function_name" {
+  description = "VPN failover Lambda 함수 이름"
+  value       = module.vpn.vpn_failover_function_name
 }
 
 output "aws_entry_summary" {
@@ -78,7 +98,9 @@ output "aws_entry_summary" {
   value = {
     total_haproxy_instances = length(var.haproxy_instances)
     total_haproxy_backends  = length(var.haproxy_backends)
+    total_vpn_instances     = length(module.vpn.vpn_server_instance_ids)
     vpn_enabled             = var.enable_vpn_server
+    vpn_failover_enabled    = var.enable_vpn_server && var.enable_vpn_failover && length(module.vpn.vpn_server_instance_ids) > 1
     nlb_dns_name            = module.haproxy.nlb_dns_name
   }
 }

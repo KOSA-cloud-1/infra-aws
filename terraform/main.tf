@@ -84,24 +84,29 @@ module "haproxy" {
 module "vpn" {
   source = "./vpn"
 
-  ami_id                 = var.ami_id
-  enable_vpn_server      = var.enable_vpn_server
-  environment            = var.environment
-  project_name           = var.project_name
-  public_subnets         = var.public_subnets
-  ssh_allowed_cidrs      = var.ssh_allowed_cidrs
-  ssh_key_name           = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
-  tags                   = var.tags
-  vpc_name               = var.vpc_name
-  vpn_aws_cidrs          = var.vpn_aws_cidrs
-  vpn_esp_proposal       = var.vpn_esp_proposal
-  vpn_ike_proposal       = var.vpn_ike_proposal
-  vpn_instance_type      = var.vpn_instance_type
-  vpn_onprem_cidrs       = var.vpn_onprem_cidrs
-  vpn_peer_allowed_cidrs = var.vpn_peer_allowed_cidrs
-  vpn_preshared_key      = var.vpn_preshared_key
-  vpn_right_id           = var.vpn_right_id
-  vpn_root_volume_size   = var.vpn_root_volume_size
-  vpn_route_table_names  = var.vpn_route_table_names
-  vpn_subnet_key         = var.vpn_subnet_key
+  ami_id              = var.ami_id
+  enable_vpn_failover = var.enable_vpn_failover
+  enable_vpn_server   = var.enable_vpn_server
+  environment         = var.environment
+  project_name        = var.project_name
+  public_subnets      = var.public_subnets
+  ssh_allowed_cidrs   = var.ssh_allowed_cidrs
+  ssh_key_name        = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
+  tags                = var.tags
+  vpc_name            = var.vpc_name
+
+  vpn_active_instance_key          = var.vpn_active_instance_key
+  vpn_aws_cidrs                    = var.vpn_aws_cidrs
+  vpn_esp_proposal                 = var.vpn_esp_proposal
+  vpn_failover_schedule_expression = var.vpn_failover_schedule_expression
+  vpn_ike_proposal                 = var.vpn_ike_proposal
+  vpn_instance_type                = var.vpn_instance_type
+  vpn_instances                    = var.vpn_instances
+  vpn_onprem_cidrs                 = var.vpn_onprem_cidrs
+  vpn_peer_allowed_cidrs           = var.vpn_peer_allowed_cidrs
+  vpn_preshared_key                = var.vpn_preshared_key
+  vpn_right_id                     = var.vpn_right_id
+  vpn_root_volume_size             = var.vpn_root_volume_size
+  vpn_route_table_names            = var.vpn_route_table_names
+  vpn_subnet_key                   = var.vpn_subnet_key
 }
