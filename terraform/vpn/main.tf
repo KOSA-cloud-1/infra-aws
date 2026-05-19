@@ -7,6 +7,8 @@ locals {
     ManagedBy   = "terraform"
   })
 
+  vpn_security_group_name = coalesce(var.vpn_security_group_name, "${var.project_name}-vpn-sg")
+
   vpn_aws_cidrs = length(var.vpn_aws_cidrs) > 0 ? var.vpn_aws_cidrs : [data.aws_vpc.this.cidr_block]
 
   legacy_vpn_instances = {
@@ -118,7 +120,7 @@ data "archive_file" "vpn_failover" {
 resource "aws_security_group" "vpn" {
   count = var.enable_vpn_server ? 1 : 0
 
-  name        = "${local.name_prefix}-vpn-sg"
+  name        = local.vpn_security_group_name
   description = "Allow ER605 IPsec traffic to StrongSwan VPN servers"
   vpc_id      = data.aws_vpc.this.id
 
@@ -183,7 +185,7 @@ resource "aws_security_group" "vpn" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-vpn-sg"
+    Name = local.vpn_security_group_name
     Role = "vpn"
   })
 }

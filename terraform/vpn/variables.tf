@@ -69,6 +69,12 @@ variable "vpn_root_volume_size" {
   default     = 20
 }
 
+variable "vpn_security_group_name" {
+  description = "VPN Server Security Group 이름. null이면 project_name 기반 기본 이름을 사용합니다."
+  type        = string
+  default     = null
+}
+
 variable "vpn_instances" {
   description = "생성할 StrongSwan VPN EC2 목록. 비우면 기존 단일 vpn_* 변수로 1대를 생성합니다."
 

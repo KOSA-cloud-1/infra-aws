@@ -47,6 +47,9 @@ ami_id = null
 ssh_public_key    = null
 ssh_allowed_cidrs = []
 
+haproxy_security_group_name = "cloud-team1-sg-haproxy"
+nlb_security_group_name     = "cloud-team1-dev-nlb-sg"
+
 haproxy_instances = {
   haproxy-a = {
     subnet_key       = "public-a"
@@ -88,7 +91,9 @@ client_allowed_cidrs = ["0.0.0.0/0"]
 enable_vpn_server   = true
 enable_vpn_failover = true
 
-vpn_active_instance_key           = "vpn-a"
+vpn_security_group_name = "cloud-team1-vpn-sg"
+
+vpn_active_instance_key          = "vpn-a"
 vpn_failover_schedule_expression = "rate(1 minute)"
 
 vpn_instances = {

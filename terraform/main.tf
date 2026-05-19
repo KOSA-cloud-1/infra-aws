@@ -73,6 +73,8 @@ module "haproxy" {
   haproxy_balance_algorithm   = var.haproxy_balance_algorithm
   haproxy_instances           = var.haproxy_instances
   haproxy_maxconn             = var.haproxy_maxconn
+  haproxy_security_group_name = var.haproxy_security_group_name
+  nlb_security_group_name     = var.nlb_security_group_name
   project_name                = var.project_name
   public_subnets              = var.public_subnets
   ssh_allowed_cidrs           = var.ssh_allowed_cidrs
@@ -108,5 +110,6 @@ module "vpn" {
   vpn_right_id                     = var.vpn_right_id
   vpn_root_volume_size             = var.vpn_root_volume_size
   vpn_route_table_names            = var.vpn_route_table_names
+  vpn_security_group_name          = var.vpn_security_group_name
   vpn_subnet_key                   = var.vpn_subnet_key
 }

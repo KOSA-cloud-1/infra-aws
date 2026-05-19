@@ -7,6 +7,9 @@ locals {
     ManagedBy   = "terraform"
   })
 
+  haproxy_security_group_name = coalesce(var.haproxy_security_group_name, "${var.project_name}-sg-haproxy")
+  nlb_security_group_name     = coalesce(var.nlb_security_group_name, "${local.name_prefix}-nlb-sg")
+
   listener_ports = {
     http  = 80
     https = 443
@@ -65,7 +68,7 @@ data "aws_subnet" "public" {
 }
 
 resource "aws_security_group" "nlb" {
-  name        = "${local.name_prefix}-nlb-sg"
+  name        = local.nlb_security_group_name
   description = "Allow public service traffic to AWS NLB"
   vpc_id      = data.aws_vpc.this.id
 
@@ -94,12 +97,12 @@ resource "aws_security_group" "nlb" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-nlb-sg"
+    Name = local.nlb_security_group_name
   })
 }
 
 resource "aws_security_group" "haproxy" {
-  name        = "${local.name_prefix}-haproxy-sg"
+  name        = local.haproxy_security_group_name
   description = "Allow NLB traffic to HAProxy EC2"
   vpc_id      = data.aws_vpc.this.id
 
@@ -140,7 +143,7 @@ resource "aws_security_group" "haproxy" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "${local.name_prefix}-haproxy-sg"
+    Name = local.haproxy_security_group_name
   })
 }
 
