@@ -1,0 +1,26 @@
+config setup
+  charondebug="ike 2, knl 2, cfg 2"
+  uniqueids=no
+
+conn er605
+  auto=${auto}
+  type=tunnel
+  keyexchange=ikev2
+  authby=psk
+
+  left=%any
+  leftid=${left_id}
+  leftsubnet=${join(",", aws_cidrs)}
+
+  right=%any
+  rightid=${right_id}
+  rightsubnet=${join(",", onprem_cidrs)}
+
+  ike=${ike_proposal}
+  esp=${esp_proposal}
+
+  forceencaps=yes
+  keyingtries=%forever
+  dpdaction=restart
+  dpddelay=30s
+  dpdtimeout=120s

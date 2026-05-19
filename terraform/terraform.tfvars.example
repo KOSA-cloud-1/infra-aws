@@ -1,0 +1,136 @@
+# =========================================================
+# AWS 기본 설정
+# =========================================================
+
+aws_region   = "ap-northeast-2"
+aws_access_key = "YOUR_AWS_ACCESS_KEY_ID"
+aws_secret_key = "YOUR_AWS_SECRET_ACCESS_KEY"
+project_name = "cloud-team1"
+environment  = "dev"
+
+tags = {
+  Owner = "cloud-team1"
+}
+
+# =========================================================
+# 기존 VPC / Subnet 조회 설정
+# =========================================================
+
+vpc_name = "cloud-team1-vpc"
+
+public_subnets = {
+  public-a = {
+    name = "cloud-team1-subnet-public1-ap-northeast-2a"
+  }
+  public-b = {
+    name = "cloud-team1-subnet-public2-ap-northeast-2b"
+  }
+}
+
+private_subnets = {
+  private-a = {
+    name = "cloud-team1-subnet-private1-ap-northeast-2a"
+  }
+  private-b = {
+    name = "cloud-team1-subnet-private2-ap-northeast-2b"
+  }
+}
+
+# =========================================================
+# HAProxy EC2 구성
+# =========================================================
+
+# null이면 Ubuntu 24.04 LTS 최신 AMI를 자동 조회합니다.
+ami_id = null
+
+# SSH 접속이 필요하면 공개 키와 허용 CIDR을 설정합니다.
+ssh_public_key    = null
+ssh_allowed_cidrs = []
+
+haproxy_security_group_name = "cloud-team1-sg-haproxy"
+nlb_security_group_name     = "cloud-team1-dev-nlb-sg"
+
+haproxy_instances = {
+  haproxy-a = {
+    subnet_key       = "public-a"
+    instance_type    = "t3.micro"
+    root_volume_size = 20
+  }
+  haproxy-b = {
+    subnet_key       = "public-b"
+    instance_type    = "t3.micro"
+    root_volume_size = 20
+  }
+}
+
+# AWS HAProxy가 VPN을 통해 전달할 VLAN20 On-Prem HAProxy VIP입니다.
+# infra-proxmox/terraform/haproxy 의 haproxy_vip 값과 맞춰야 합니다.
+# AWS/VPN에서 VLAN40 Ingress VIP로 직접 보내지 않도록 DMZ VIP만 backend로 둡니다.
+haproxy_backends = {
+  onprem-haproxy-vip = {
+    address    = "172.17.32.20"
+    http_port  = 80
+    https_port = 443
+    check      = true
+  }
+}
+
+haproxy_balance_algorithm = "roundrobin"
+haproxy_maxconn           = 4096
+
+# =========================================================
+# NLB 접근 제어
+# =========================================================
+
+client_allowed_cidrs = ["0.0.0.0/0"]
+
+# =========================================================
+# ER605 IPsec VPN Server 구성
+# =========================================================
+
+enable_vpn_server   = true
+enable_vpn_failover = true
+
+vpn_security_group_name = "cloud-team1-vpn-sg"
+
+vpn_active_instance_key          = "vpn-a"
+vpn_failover_schedule_expression = "rate(1 minute)"
+
+vpn_instances = {
+  vpn-a = {
+    subnet_key       = "public-a"
+    instance_type    = "t3.micro"
+    root_volume_size = 20
+    priority         = 100
+  }
+  vpn-b = {
+    subnet_key       = "public-b"
+    instance_type    = "t3.micro"
+    root_volume_size = 20
+    priority         = 90
+  }
+}
+
+# ER605 IPsec Policy의 Pre-shared Key와 동일하게 설정합니다.
+vpn_preshared_key = "CHANGE_ME_STRONG_PSK"
+
+# ER605가 공인 IP 없이 NAT 뒤에서 접속하는 구조라면 0.0.0.0/0로 둡니다.
+vpn_peer_allowed_cidrs = ["0.0.0.0/0"]
+
+vpn_icmp_allowed_cidrs = ["0.0.0.0/0"]
+
+vpn_aws_cidrs    = ["10.1.0.0/16"]
+vpn_onprem_cidrs = ["172.17.32.0/24", "192.168.36.0/24"]
+vpn_right_id     = "@er605"
+
+vpn_ike_proposal = "aes256-sha1-modp1024!"
+vpn_esp_proposal = "aes128-sha1!"
+
+# ER605가 NAT 뒤에서 먼저 IKE를 시작하므로 add (수동응답) 모드를 사용합니다.
+vpn_auto = "add"
+
+vpn_route_table_names = {
+  public    = "cloud-team1-rtb-public"
+  private-a = "cloud-team1-rtb-private1-ap-northeast-2a"
+  private-b = "cloud-team1-rtb-private2-ap-northeast-2b"
+}
