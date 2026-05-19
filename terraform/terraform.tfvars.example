@@ -120,7 +120,7 @@ vpn_peer_allowed_cidrs = ["0.0.0.0/0"]
 vpn_icmp_allowed_cidrs = ["0.0.0.0/0"]
 
 vpn_aws_cidrs    = ["10.1.0.0/16"]
-vpn_onprem_cidrs = ["172.17.32.0/24"]
+vpn_onprem_cidrs = ["172.17.32.0/24", "192.168.36.0/24"]
 vpn_right_id     = "@er605"
 
 vpn_ike_proposal = "aes256-sha1-modp1024!"
