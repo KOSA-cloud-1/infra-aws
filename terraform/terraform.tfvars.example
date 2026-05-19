@@ -117,7 +117,7 @@ vpn_preshared_key = "CHANGE_ME_STRONG_PSK"
 # ER605가 공인 IP 없이 NAT 뒤에서 접속하는 구조라면 0.0.0.0/0로 둡니다.
 vpn_peer_allowed_cidrs = ["0.0.0.0/0"]
 
-vpn_icmp_allowed_cidrs = ["172.17.64.0/24"]
+vpn_icmp_allowed_cidrs = ["0.0.0.0/0"]
 
 vpn_aws_cidrs    = ["10.1.0.0/16"]
 vpn_onprem_cidrs = ["172.17.32.0/24"]
