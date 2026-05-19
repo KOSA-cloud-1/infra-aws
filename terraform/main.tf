@@ -101,6 +101,7 @@ module "vpn" {
   vpn_aws_cidrs                    = var.vpn_aws_cidrs
   vpn_esp_proposal                 = var.vpn_esp_proposal
   vpn_failover_schedule_expression = var.vpn_failover_schedule_expression
+  vpn_icmp_allowed_cidrs           = var.vpn_icmp_allowed_cidrs
   vpn_ike_proposal                 = var.vpn_ike_proposal
   vpn_instance_type                = var.vpn_instance_type
   vpn_instances                    = var.vpn_instances

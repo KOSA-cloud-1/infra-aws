@@ -120,6 +120,12 @@ variable "vpn_peer_allowed_cidrs" {
   default     = ["0.0.0.0/0"]
 }
 
+variable "vpn_icmp_allowed_cidrs" {
+  description = "VPN Server에 ICMP(ping)를 허용할 CIDR 목록. 비우면 ICMP 규칙을 추가하지 않습니다."
+  type        = list(string)
+  default     = []
+}
+
 variable "vpn_aws_cidrs" {
   description = "IPsec leftsubnet으로 사용할 AWS CIDR 목록. 비우면 VPC CIDR을 사용합니다."
   type        = list(string)

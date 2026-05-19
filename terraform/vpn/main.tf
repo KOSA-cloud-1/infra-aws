@@ -124,27 +124,51 @@ resource "aws_security_group" "vpn" {
   description = "Allow ER605 IPsec traffic to StrongSwan VPN servers"
   vpc_id      = data.aws_vpc.this.id
 
+  dynamic "ingress" {
+    for_each = length(var.vpn_icmp_allowed_cidrs) > 0 ? [1] : []
+
+    content {
+      description = "All ICMP - IPv4"
+      from_port   = -1
+      to_port     = -1
+      protocol    = "icmp"
+      cidr_blocks = var.vpn_icmp_allowed_cidrs
+    }
+  }
+
   ingress {
-    description = "IKE from ER605"
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "IKE"
     from_port   = 500
     to_port     = 500
     protocol    = "udp"
     cidr_blocks = var.vpn_peer_allowed_cidrs
   }
 
-  ingress {
-    description = "NAT-T from ER605"
-    from_port   = 4500
-    to_port     = 4500
-    protocol    = "udp"
-    cidr_blocks = var.vpn_peer_allowed_cidrs
+  dynamic "ingress" {
+    for_each = length(var.ssh_allowed_cidrs) > 0 ? [1] : []
+
+    content {
+      description = "SSH"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = var.ssh_allowed_cidrs
+    }
   }
 
   ingress {
-    description = "ESP from ER605"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "50"
+    description = "NAT-T"
+    from_port   = 4500
+    to_port     = 4500
+    protocol    = "udp"
     cidr_blocks = var.vpn_peer_allowed_cidrs
   }
 
@@ -154,26 +178,6 @@ resource "aws_security_group" "vpn" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = [data.aws_vpc.this.cidr_block]
-  }
-
-  ingress {
-    description = "Decrypted traffic from On-Prem"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = var.vpn_onprem_cidrs
-  }
-
-  dynamic "ingress" {
-    for_each = length(var.ssh_allowed_cidrs) > 0 ? [1] : []
-
-    content {
-      description = "SSH from allowed CIDRs"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = var.ssh_allowed_cidrs
-    }
   }
 
   egress {
