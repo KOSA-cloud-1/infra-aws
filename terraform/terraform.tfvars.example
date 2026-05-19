@@ -126,6 +126,9 @@ vpn_right_id     = "@er605"
 vpn_ike_proposal = "aes256-sha1-modp1024!"
 vpn_esp_proposal = "aes128-sha1!"
 
+# ER605가 NAT 뒤에서 먼저 IKE를 시작하므로 add (수동응답) 모드를 사용합니다.
+vpn_auto = "add"
+
 vpn_route_table_names = {
   public    = "cloud-team1-rtb-public"
   private-a = "cloud-team1-rtb-private1-ap-northeast-2a"

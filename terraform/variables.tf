@@ -125,6 +125,12 @@ variable "vpn_right_id" {
   default     = "@er605"
 }
 
+variable "vpn_auto" {
+  description = "StrongSwan conn auto 값. ER605가 NAT 뒤에서 먼저 접속하는 구조라면 add, AWS에서 먼저 연결해야 하면 start"
+  type        = string
+  default     = "add"
+}
+
 variable "vpn_ike_proposal" {
   description = "StrongSwan IKE proposal"
   type        = string

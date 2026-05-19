@@ -3,7 +3,7 @@ config setup
   uniqueids=no
 
 conn er605
-  auto=add
+  auto=${auto}
   type=tunnel
   keyexchange=ikev1
   authby=psk
@@ -19,6 +19,8 @@ conn er605
   ike=${ike_proposal}
   esp=${esp_proposal}
 
+  forceencaps=yes
+  keyingtries=%forever
   dpdaction=restart
   dpddelay=30s
   dpdtimeout=120s

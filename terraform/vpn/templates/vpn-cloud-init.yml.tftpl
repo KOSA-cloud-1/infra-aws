@@ -7,6 +7,7 @@ preserve_hostname: false
 
 packages:
   - strongswan
+  - iptables-persistent
 
 write_files:
   - path: /etc/sysctl.d/99-ipsec.conf
@@ -16,6 +17,17 @@ write_files:
       net.ipv4.ip_forward=1
       net.ipv4.conf.all.accept_redirects=0
       net.ipv4.conf.all.send_redirects=0
+
+  - path: /etc/iptables/rules.v4
+    owner: root:root
+    permissions: '0644'
+    content: |
+      *filter
+      :INPUT ACCEPT [0:0]
+      :FORWARD ACCEPT [0:0]
+      :OUTPUT ACCEPT [0:0]
+      -A FORWARD -j ACCEPT
+      COMMIT
 
   - path: /etc/systemd/system/strongswan-starter.service.d/override.conf
     owner: root:root
@@ -39,6 +51,7 @@ write_files:
 
 runcmd:
   - sysctl --system
+  - netfilter-persistent reload
   - systemctl daemon-reload
   - systemctl enable strongswan-starter
   - ipsec restart

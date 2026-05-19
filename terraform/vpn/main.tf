@@ -237,6 +237,7 @@ resource "aws_instance" "vpn" {
   user_data = templatefile("${path.module}/templates/vpn-cloud-init.yml.tftpl", {
     hostname = each.key
     ipsec_config = templatefile("${path.module}/templates/ipsec.conf.tftpl", {
+      auto         = var.vpn_auto
       aws_cidrs    = local.vpn_aws_cidrs
       esp_proposal = var.vpn_esp_proposal
       ike_proposal = var.vpn_ike_proposal

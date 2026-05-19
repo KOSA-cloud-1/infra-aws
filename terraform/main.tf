@@ -98,6 +98,7 @@ module "vpn" {
   vpc_name            = var.vpc_name
 
   vpn_active_instance_key          = var.vpn_active_instance_key
+  vpn_auto                         = var.vpn_auto
   vpn_aws_cidrs                    = var.vpn_aws_cidrs
   vpn_esp_proposal                 = var.vpn_esp_proposal
   vpn_failover_schedule_expression = var.vpn_failover_schedule_expression
