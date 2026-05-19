@@ -173,11 +173,27 @@ resource "aws_security_group" "vpn" {
   }
 
   ingress {
+    description = "ESP"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "50"
+    cidr_blocks = var.vpn_peer_allowed_cidrs
+  }
+
+  ingress {
     description = "Forwarded traffic from VPC"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = [data.aws_vpc.this.cidr_block]
+  }
+
+  ingress {
+    description = "Decrypted traffic from On-Prem"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = var.vpn_onprem_cidrs
   }
 
   egress {
