@@ -10,16 +10,35 @@ locals {
   haproxy_security_group_name = coalesce(var.haproxy_security_group_name, "${var.project_name}-sg-haproxy")
   nlb_security_group_name     = coalesce(var.nlb_security_group_name, "${local.name_prefix}-nlb-sg")
 
-  listener_ports = {
-    http  = 80
-    https = 443
+  listener_configs = {
+    http = {
+      port       = 80
+      protocol   = "TCP"
+      target_key = "http"
+    }
+    https = {
+      port       = 443
+      protocol   = "TLS"
+      target_key = "https"
+    }
+  }
+
+  target_group_configs = {
+    http = {
+      port     = 80
+      protocol = "TCP"
+    }
+    https = {
+      port     = 8080
+      protocol = "TCP"
+    }
   }
 
   target_attachments = {
-    for pair in setproduct(keys(local.listener_ports), keys(var.haproxy_instances)) :
+    for pair in setproduct(keys(local.target_group_configs), keys(var.haproxy_instances)) :
     "${pair[0]}-${pair[1]}" => {
-      listener = pair[0]
-      instance = pair[1]
+      target_group = pair[0]
+      instance     = pair[1]
     }
   }
 }
@@ -107,7 +126,7 @@ resource "aws_security_group" "haproxy" {
   vpc_id      = data.aws_vpc.this.id
 
   ingress {
-    description     = "HTTP from NLB"
+    description     = "HTTP redirect traffic from NLB"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
@@ -115,9 +134,9 @@ resource "aws_security_group" "haproxy" {
   }
 
   ingress {
-    description     = "HTTPS from NLB"
-    from_port       = 443
-    to_port         = 443
+    description     = "HTTP app traffic after NLB TLS termination"
+    from_port       = 8080
+    to_port         = 8080
     protocol        = "tcp"
     security_groups = [aws_security_group.nlb.id]
   }
@@ -163,7 +182,6 @@ resource "aws_instance" "haproxy" {
     haproxy_config = templatefile("${path.module}/templates/haproxy.cfg.tftpl", {
       backends          = var.haproxy_backends
       balance_algorithm = var.haproxy_balance_algorithm
-      listener_ports    = local.listener_ports
       maxconn           = var.haproxy_maxconn
     })
     hostname = each.key
@@ -208,11 +226,11 @@ resource "aws_lb" "haproxy" {
 }
 
 resource "aws_lb_target_group" "haproxy" {
-  for_each = local.listener_ports
+  for_each = local.target_group_configs
 
   name        = "${local.name_prefix}-${each.key}-tg"
-  port        = each.value
-  protocol    = "TCP"
+  port        = each.value.port
+  protocol    = each.value.protocol
   target_type = "instance"
   vpc_id      = data.aws_vpc.this.id
 
@@ -231,22 +249,24 @@ resource "aws_lb_target_group" "haproxy" {
 }
 
 resource "aws_lb_listener" "haproxy" {
-  for_each = local.listener_ports
+  for_each = local.listener_configs
 
   load_balancer_arn = aws_lb.haproxy.arn
-  port              = each.value
-  protocol          = "TCP"
+  port              = each.value.port
+  protocol          = each.value.protocol
+  certificate_arn   = each.value.protocol == "TLS" ? var.nlb_tls_certificate_arn : null
+  ssl_policy        = each.value.protocol == "TLS" ? var.nlb_tls_ssl_policy : null
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.haproxy[each.key].arn
+    target_group_arn = aws_lb_target_group.haproxy[each.value.target_key].arn
   }
 }
 
 resource "aws_lb_target_group_attachment" "haproxy" {
   for_each = local.target_attachments
 
-  target_group_arn = aws_lb_target_group.haproxy[each.value.listener].arn
+  target_group_arn = aws_lb_target_group.haproxy[each.value.target_group].arn
   target_id        = aws_instance.haproxy[each.value.instance].id
-  port             = local.listener_ports[each.value.listener]
+  port             = local.target_group_configs[each.value.target_group].port
 }

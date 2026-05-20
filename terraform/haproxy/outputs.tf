@@ -50,10 +50,9 @@ output "haproxy_backends" {
   value = {
     for k, backend in var.haproxy_backends :
     k => {
-      address    = backend.address
-      http_port  = backend.http_port
-      https_port = backend.https_port
-      check      = backend.check
+      address   = backend.address
+      http_port = backend.http_port
+      check     = backend.check
     }
   }
 }

@@ -28,9 +28,12 @@ infra-aws/
 - VPC: `cloud-team1-vpc`
 - Public Subnet: `cloud-team1-subnet-public1-ap-northeast-2a`, `cloud-team1-subnet-public2-ap-northeast-2b`
 - Private Subnet: `cloud-team1-subnet-private1-ap-northeast-2a`, `cloud-team1-subnet-private2-ap-northeast-2b`
-- NLB: 80/443 TCP Listener
+- NLB: 80 TCP Listener, 443 TLS Listener
 - EC2 HAProxy: Public Subnet에 2대 구성
-- HAProxy backend: `haproxy_backends` 변수로 VLAN20 On-Prem HAProxy VIP 지정
+- HTTP redirect: NLB 80 → AWS HAProxy 80에서 HTTPS 301 redirect
+- TLS 종료: ACM 인증서를 NLB 443 TLS Listener에 연결하고, 복호화된 HTTP를 AWS HAProxy 8080으로 전달
+- Backend 전달: AWS HAProxy → On-Prem HAProxy → Kubernetes Ingress는 HTTP 80만 사용
+- HAProxy backend: `haproxy_backends` 변수로 VLAN20 On-Prem HAProxy VIP의 HTTP 80 지정
 - VPN Server: ER605 IPsec initiator 연결을 받는 StrongSwan EC2 2대와 서비스 Elastic IP 구성
 - VPN Failover: EventBridge가 Lambda를 1분마다 실행해 정상 EC2 중 우선순위가 높은 인스턴스로 서비스 EIP와 On-Prem route를 이동
 - VPN on-prem CIDR: 기본값은 VLAN20 DMZ `172.17.32.0/24`로 두어 AWS/VPN에서 VLAN40으로 직접 라우팅하지 않는다.
@@ -54,5 +57,6 @@ cd terraform
 ```
 
 `terraform.tfvars`에서 `haproxy_backends`의 `address`를 실제 VLAN20 On-Prem HAProxy VIP로 변경해야 한다.
+`nlb_tls_certificate_arn`에는 `ap-northeast-2` ACM 인증서 ARN을 설정해야 한다.
 ER605 VPN을 적용하려면 `vpn_preshared_key`를 실제 Pre-shared Key로 변경해야 한다.
 ER605 Remote Gateway에는 Terraform output `vpn_server_public_ip`로 나오는 VPN 서비스 EIP를 설정한다.

@@ -74,6 +74,8 @@ module "haproxy" {
   haproxy_instances           = var.haproxy_instances
   haproxy_maxconn             = var.haproxy_maxconn
   haproxy_security_group_name = var.haproxy_security_group_name
+  nlb_tls_certificate_arn     = var.nlb_tls_certificate_arn
+  nlb_tls_ssl_policy          = var.nlb_tls_ssl_policy
   nlb_security_group_name     = var.nlb_security_group_name
   project_name                = var.project_name
   public_subnets              = var.public_subnets
