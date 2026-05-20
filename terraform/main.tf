@@ -76,9 +76,11 @@ module "haproxy" {
   haproxy_security_group_name = var.haproxy_security_group_name
   nlb_tls_certificate_arn     = var.nlb_tls_certificate_arn
   nlb_tls_ssl_policy          = var.nlb_tls_ssl_policy
+  nlb_record_names            = var.nlb_record_names
   nlb_security_group_name     = var.nlb_security_group_name
   project_name                = var.project_name
   public_subnets              = var.public_subnets
+  route53_zone_name           = var.route53_zone_name
   ssh_allowed_cidrs           = var.ssh_allowed_cidrs
   ssh_key_name                = var.ssh_public_key == null ? null : aws_key_pair.haproxy[0].key_name
   tags                        = var.tags

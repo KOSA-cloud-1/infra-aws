@@ -66,3 +66,8 @@ output "haproxy_security_group_id" {
   description = "HAProxy Security Group ID"
   value       = aws_security_group.haproxy.id
 }
+
+output "nlb_record_fqdns" {
+  description = "생성된 Route53 NLB alias 레코드 FQDN 목록"
+  value       = [for r in aws_route53_record.nlb : r.fqdn]
+}

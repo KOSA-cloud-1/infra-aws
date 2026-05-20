@@ -112,3 +112,15 @@ variable "client_allowed_cidrs" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
+
+variable "route53_zone_name" {
+  description = "기존 Route53 호스팅 영역 이름 (예: example.com). null이면 Route53 레코드를 생성하지 않습니다."
+  type        = string
+  default     = null
+}
+
+variable "nlb_record_names" {
+  description = "NLB alias 레코드를 생성할 서브도메인 목록 (예: [\"app\", \"www\"]). 비우면 zone apex에만 생성합니다."
+  type        = list(string)
+  default     = []
+}

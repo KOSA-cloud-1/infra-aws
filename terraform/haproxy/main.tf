@@ -270,3 +270,30 @@ resource "aws_lb_target_group_attachment" "haproxy" {
   target_id        = aws_instance.haproxy[each.value.instance].id
   port             = local.target_group_configs[each.value.target_group].port
 }
+
+# =========================================================
+# Route53 NLB Alias 레코드
+# =========================================================
+
+data "aws_route53_zone" "this" {
+  count = var.route53_zone_name != null ? 1 : 0
+
+  name         = var.route53_zone_name
+  private_zone = false
+}
+
+resource "aws_route53_record" "nlb" {
+  for_each = var.route53_zone_name != null ? toset(
+    length(var.nlb_record_names) > 0 ? var.nlb_record_names : [""]
+  ) : toset([])
+
+  zone_id = data.aws_route53_zone.this[0].zone_id
+  name    = each.value == "" ? var.route53_zone_name : "${each.value}.${var.route53_zone_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.haproxy.dns_name
+    zone_id                = aws_lb.haproxy.zone_id
+    evaluate_target_health = true
+  }
+}
