@@ -267,6 +267,17 @@ variable "nlb_security_group_name" {
   default     = null
 }
 
+variable "nlb_tls_certificate_arn" {
+  description = "NLB 443 TLS listener에 연결할 ACM 인증서 ARN. TLS는 AWS NLB에서 종료하고 HAProxy에는 복호화된 HTTP로 전달합니다."
+  type        = string
+}
+
+variable "nlb_tls_ssl_policy" {
+  description = "NLB 443 TLS listener SSL policy"
+  type        = string
+  default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+}
+
 variable "haproxy_instances" {
   description = "생성할 HAProxy EC2 목록"
 
@@ -288,13 +299,12 @@ variable "haproxy_instances" {
 }
 
 variable "haproxy_backends" {
-  description = "AWS HAProxy가 전달할 On-Prem 또는 EKS backend 목록"
+  description = "AWS HAProxy가 HTTP 80으로 전달할 On-Prem 또는 EKS backend 목록"
 
   type = map(object({
-    address    = string
-    http_port  = optional(number, 80)
-    https_port = optional(number, 443)
-    check      = optional(bool, true)
+    address   = string
+    http_port = optional(number, 80)
+    check     = optional(bool, true)
   }))
 }
 
@@ -318,4 +328,20 @@ variable "client_allowed_cidrs" {
   description = "AWS NLB 80/443 접근을 허용할 CIDR 목록"
   type        = list(string)
   default     = ["0.0.0.0/0"]
+}
+
+# =========================================================
+# Route53
+# =========================================================
+
+variable "route53_zone_name" {
+  description = "기존 Route53 호스팅 영역 이름 (예: example.com). null이면 Route53 레코드를 생성하지 않습니다."
+  type        = string
+  default     = null
+}
+
+variable "nlb_record_names" {
+  description = "NLB alias 레코드를 생성할 서브도메인 목록 (예: [\"app\", \"www\"]). 비우면 zone apex에만 생성합니다."
+  type        = list(string)
+  default     = []
 }

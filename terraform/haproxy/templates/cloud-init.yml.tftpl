@@ -12,7 +12,7 @@ packages:
 
 write_files:
   # Terraform이 렌더링한 HAProxy 설정 파일
-  # AWS NLB 80/443 트래픽을 On-Prem HAProxy VIP로 TCP passthrough 전달합니다.
+  # AWS NLB 80은 HTTPS로 리다이렉트하고, TLS 종료 후 트래픽은 On-Prem HTTP 80으로 전달합니다.
   - path: /etc/haproxy/haproxy.cfg
     owner: root:root
     permissions: '0644'

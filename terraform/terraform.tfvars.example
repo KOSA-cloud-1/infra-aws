@@ -50,6 +50,10 @@ ssh_allowed_cidrs = []
 haproxy_security_group_name = "cloud-team1-sg-haproxy"
 nlb_security_group_name     = "cloud-team1-dev-nlb-sg"
 
+# ACM 인증서는 NLB와 같은 리전에 있어야 합니다.
+nlb_tls_certificate_arn = "arn:aws:acm:ap-northeast-2:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+nlb_tls_ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+
 haproxy_instances = {
   haproxy-a = {
     subnet_key       = "public-a"
@@ -70,7 +74,6 @@ haproxy_backends = {
   onprem-haproxy-vip = {
     address    = "172.17.32.20"
     http_port  = 80
-    https_port = 443
     check      = true
   }
 }
@@ -83,6 +86,17 @@ haproxy_maxconn           = 4096
 # =========================================================
 
 client_allowed_cidrs = ["0.0.0.0/0"]
+
+# =========================================================
+# Route53 NLB alias 레코드 (기존 호스팅 영역 사용)
+# =========================================================
+
+# AWS 콘솔에서 미리 생성해 둔 호스팅 영역 이름
+route53_zone_name = "example.com"
+
+# NLB를 가리킬 서브도메인 목록. 비우면 zone apex(example.com)에만 생성합니다.
+# 예) ["app"] → app.example.com → NLB alias
+nlb_record_names = ["app"]
 
 # =========================================================
 # ER605 IPsec VPN Server 구성

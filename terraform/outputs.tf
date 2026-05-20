@@ -29,6 +29,11 @@ output "nlb_arn" {
   value       = module.haproxy.nlb_arn
 }
 
+output "nlb_record_fqdns" {
+  description = "생성된 Route53 NLB alias 레코드 FQDN 목록"
+  value       = module.haproxy.nlb_record_fqdns
+}
+
 output "haproxy_instance_ids" {
   description = "HAProxy EC2 Instance ID 목록"
   value       = module.haproxy.haproxy_instance_ids
