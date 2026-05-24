@@ -1,0 +1,24 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+# .terraform.lock.hcl 은 provider 재현성을 위해 커밋한다(의도적으로 ignore 안 함)
+
+# 빌드 산출물(페일오버 Lambda zip 등)
+.terraform/vpn-failover.zip
+
+# OS / editor
+.DS_Store
+*.swp
+*~
